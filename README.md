@@ -45,23 +45,23 @@ nagios ALL=(ALL) NOPASSWD: ALL
 
 Save and quit.
 
-Do not forget to adjust your panel URL [gpuJsonSite] and the minimum hashrate value by gpu [gpuMinHashRate] to your needs :
+Do not forget to adjust the minimum Global hashrate value [rigMinHashRate] to your needs :
 
 ```python
-  gpuJsonSite = “http://XXXXX.ethosdistro.com/?json=yes”
-```
-
-by replacing the XXXXX with your ID [http://XXXXX.ethosdistro.com/?json=yes]
-
-(you can find your ID by typing helpme on your rig directly in command line.)
- 
-and
-```python
-  gpuMinHashRate = XX.X
+  rigMinHashRate = XX.X
 ```
  
 
 And the check itself has to be placed in /usr/lib/nagios/plugins/check_rig-hash
+
+
+You can test it using :
+
+```bash
+ # sudo python /usr/lib/nagios/plugins/check_rig-hash
+OK - [RIGten1] Global Rig hashrate : 244.9 (MH/s) [Threshold: 230.0]
+```
+
 
 
 Source: http://www.davidbayle.com/knowledge-base/nagios-check-nrpe-check-mining-rig-hash/

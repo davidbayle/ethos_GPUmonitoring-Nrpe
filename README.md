@@ -15,7 +15,7 @@ Let's set it up in your nrpe.cfg file ( usually in /etc/nagios/nrpe.cfg )
 
 ```bash
 # RIG
-command[check_rig-hash]=python /usr/lib/nagios/plugins/check_rig-hash[/cc]
+command[check_rig-hash]=python /usr/lib/nagios/plugins/check_rig-hash
 ```
 
 

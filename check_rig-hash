@@ -65,7 +65,6 @@ def ReadStatusFile():
     # read rig hash rate from ethos status file
     pStatusLogFile = open(rigStatusLogFile, "r")
     returnedStatus = pStatusLogFile.read()
-#    print returnedStatus
     return returnedStatus
   except:
     print "File read error in - " + rigStatusLogFile

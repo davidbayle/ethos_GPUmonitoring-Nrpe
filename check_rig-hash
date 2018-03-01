@@ -1,4 +1,3 @@
-
 #!/usr/bin/python
 #*****************************************************************
 # Author: David Bayle
@@ -6,7 +5,7 @@
 # This python scripts cheks your ethOS mining rig Hash for Nagios Monitoring
 #
 # Usage: If the script detects hashrate lower than your threshold, or crashed GPU(s)
-# it will start counting up to 6 (6 x 1 min by defaults) and then force reboot.
+# it will start counting up to 5 (5 x 1 min by defaults) and then force reboot.
 #
 #
 # Settings:
@@ -66,7 +65,7 @@ def ReadStatusFile():
     # read rig hash rate from ethos status file
     pStatusLogFile = open(rigStatusLogFile, "r")
     returnedStatus = pStatusLogFile.read()
-#    print returnedValue
+#    print returnedStatus
     return returnedStatus
   except:
     print "File read error in - " + rigStatusLogFile
@@ -96,6 +95,7 @@ def WriteRebootCount(count):
   except:
     print "File write error in - " + rigRebootLogFile
 
+
 def ReadRebootCount():
   try:
     # read reboot counter from a file
@@ -105,6 +105,17 @@ def ReadRebootCount():
     return returnedValue
   except:
     print "File read error in - " + rigRebootLogFile
+
+
+def IsNumber(n):
+    is_number = True
+    try:
+        num = float(n)
+        # check for "nan" floats
+        is_number = num == num   # or use `math.isnan(num)`
+    except ValueError:
+        is_number = False
+    return is_number
 
 
 #================================ RUN ======================================== #
@@ -123,25 +134,56 @@ except:
 # extract data
 try:
     hashRateData =  rigStats.split(" ", 1)
+#    print hashRateData[0]
     hashRate = hashRateData[0]
 except:
     PrintOutput("UNKNOWN - Invalid RIG Hashrate reading")
     return_state(STATE_UNKNOWN)
 
 
-if (float(hashRate) <= float(rigMinHashRate)):
-  PrintOutput("WARNING: RIG HASHRATE LOWER THAN THRESHOLD (" + str(rigMinHashRate) + ") : " + hashRate + " (MH/s)")
-  gpuRebootCount = gpuRebootCount + 1
-  WriteRebootCount(int(gpuRebootCount))
-  if (gpuRebootCount >= 6):
-    PrintOutput("CRITICAL: REBOOTING: MINER CRASHED FOR 6 MINs : RIG HASHRATE LOWER THAN THRESHOLD (" + str(rigMinHashRate) + ") : " + hashRate + " (MH/s)")
-    WriteRebootCount(0)
-    os.system("/opt/ethos/bin/r")
+if (IsNumber(hashRateData[0])):
+
+  if (float(hashRate) <= float(rigMinHashRate)):
+    PrintOutput("WARNING: RIG HASHRATE LOWER THAN THRESHOLD (" + str(rigMinHashRate) + ") : " + hashRate + " (MH/s)")
+    gpuRebootCount = gpuRebootCount + 1
+    WriteRebootCount(int(gpuRebootCount))
     return_state(STATE_WARNING)
     sys.exit(STATE_WARNING)
+    if (gpuRebootCount >= 5):
+      PrintOutput("CRITICAL: REBOOTING: MINER CRASHED FOR 5 MINs : RIG HASHRATE LOWER THAN THRESHOLD (" + str(rigMinHashRate) + ") : " + hashRate + " (MH/s)")
+      WriteRebootCount(0)
+      os.system("/opt/ethos/bin/r")
+      return_state(STATE_CRITICAL)
+      sys.exit(STATE_CRITICAL)
+
+  else:
+    WriteRebootCount(0)
+    PrintOutput("OK - [" + str(rigName) + "] Global Rig hashrate : " + hashRate + " (MH/s) [Threshold: " +str(rigMinHashRate) + "]")
+    return_state(STATE_OK)
+    sys.exit(STATE_OK)
 
 else:
-  WriteRebootCount(0)
-  PrintOutput("OK - [" + str(rigName) + "] Global Rig hashrate : " + hashRate + " (MH/s) [Threshold: " +str(rigMinHashRate) + "]")
-  return_state(STATE_OK)
-  sys.exit(STATE_OK)
+  if (hashRateData[0] == "gpu" and hashRateData[1] == "clock"):
+    PrintOutput("WARNING: A GPU CRASHED !!!")
+    gpuRebootCount = gpuRebootCount + 1
+    WriteRebootCount(int(gpuRebootCount))
+    if (gpuRebootCount >= 5):
+      PrintOutput("CRITICAL: REBOOTING: MINER GPU CRASHED FOR 5 MINs !!!")
+      WriteRebootCount(0)
+      os.system("/opt/ethos/bin/r")
+      return_state(STATE_CRITICAL)
+      sys.exit(STATE_CRITICAL)
+
+  if (hashRateData[0] == "miner" and hashRateData[1] == "started"):
+    PrintOutput("WARNING: Miner Starting")
+    gpuRebootCount = gpuRebootCount + 1
+    WriteRebootCount(int(gpuRebootCount))
+    return_state(STATE_WARNING)
+    sys.exit(STATE_WARNING)
+    if (gpuRebootCount >= 5):
+      PrintOutput("CRITICAL: REBOOTING: MINER DIDN'T START IN 5 MINs !!!")
+      WriteRebootCount(0)
+      os.system("/opt/ethos/bin/r")
+      return_state(STATE_CRITICAL)
+      sys.exit(STATE_CRITICAL)
+

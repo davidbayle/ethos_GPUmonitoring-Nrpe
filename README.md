@@ -62,6 +62,6 @@ You can test it using :
 OK - [RIGten1] Global Rig hashrate : 244.9 (MH/s) [Threshold: 230.0]
 ```
 
-
+Tested against ethOS 1.2.3 to 1.3.0
 
 Source: http://www.davidbayle.com/knowledge-base/nagios-check-nrpe-check-mining-rig-hash/
